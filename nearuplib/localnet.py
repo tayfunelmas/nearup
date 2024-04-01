@@ -1,5 +1,6 @@
 import json
 import logging
+import mergedeep
 import os
 import pathlib
 import shutil
@@ -8,6 +9,9 @@ import sys
 from nearuplib.constants import NODE_PID_FILE, LOCALNET_FOLDER, LOCALNET_LOGS_FOLDER
 from nearuplib.nodelib import run_binary, proc_name_from_pid, is_neard_running
 from nearuplib import util
+
+_LOCALNET_RPC_PORT = 3030
+_LOCALNET_NETWORK_PORT = 24567
 
 
 def run(binary_path,
@@ -19,15 +23,33 @@ def run(binary_path,
         archival_nodes,
         tracked_shards,
         verbose=True,
-        interactive=False):
+        interactive=False,
+        config_override_path=None,
+        log_level=None):
     home = pathlib.Path(home)
+
+    def read_json_from_file(path):
+        assert path.endswith('.json')
+        with open(path, 'r') as file:
+            return json.loads(file.read())
+
+    def read_json_for_node(file_name, node_id):
+        assert file_name.endswith('.json')
+        path = home / f'node{node_id}' / file_name
+        assert path.exists()
+        return json.loads(path.read_text())
+
+    def write_json_for_node(file_name, node_id, data):
+        assert file_name.endswith('.json')
+        path = home / f'node{node_id}' / file_name
+        path.write_text(json.dumps(data, indent=2))
 
     if home.exists():
         if util.prompt_bool_flag(
                 'Would you like to remove data from the previous localnet run?',
                 override,
                 interactive=interactive):
-            logging.info("Removing old data.")
+            print("Removing old data since 'override' flag is set.")
             shutil.rmtree(home)
     elif interactive:
         print(
@@ -82,22 +104,29 @@ def run(binary_path,
                    tracked_shards=tracked_shards,
                    print_command=interactive).wait()
 
-    # Edit args files
-    num_nodes = 0
-    while True:
-        path = home / f'node{num_nodes}' / 'config.json'
-        if not path.exists():
-            break
+    # Edit configuration files for specific nodes.
+    for node_id in range(0, num_nodes):
+        # Update the default config with overrides and write it back.
+        config = read_json_for_node('config.json', node_id)
+        config['rpc']['addr'] = f'0.0.0.0:{_LOCALNET_RPC_PORT + node_id}'
+        config['network']['addr'] = f'0.0.0.0:{
+            _LOCALNET_NETWORK_PORT + node_id}'
+        if config_override_path:
+            config_override = read_json_from_file(config_override_path)
+            mergedeep.merge(config, config_override,
+                            strategy=mergedeep.Strategy.TYPESAFE_REPLACE)
+        write_json_for_node('config.json', node_id, config)
 
-        data = json.loads(path.read_text())
-        data['rpc']['addr'] = f'0.0.0.0:{3030 + num_nodes}'
-        data['network']['addr'] = f'0.0.0.0:{24567 + num_nodes}'
-        path.write_text(json.dumps(data, indent=2))
-        num_nodes += 1
+        # Write log config.
+        log_config = {
+            'opentelemetry_level': None,
+            'rust_log': str(log_level).upper() if log_level is not None else None
+        }
+        write_json_for_node('log_config.json', node_id, log_config)
 
     # Load public key from first node
-    data = json.loads((home / 'node0' / 'node_key.json').read_text())
-    public_key = data['public_key']
+    node_key = read_json_for_node('node_key.json', 0)
+    public_key = node_key['public_key']
 
     # Recreate log folder
     shutil.rmtree(LOCALNET_LOGS_FOLDER, ignore_errors=True)
@@ -123,7 +152,8 @@ def run(binary_path,
 
 
 def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
-          archival_nodes, tracked_shards, verbose, interactive):
+          archival_nodes, tracked_shards, verbose, interactive,
+          config_override_path, log_level):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -137,4 +167,5 @@ def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
         sys.exit(1)
 
     run(binary_path, home, num_nodes, num_shards, override, fix_accounts,
-        archival_nodes, tracked_shards, verbose, interactive)
+        archival_nodes, tracked_shards, verbose, interactive,
+        config_override_path, log_level)

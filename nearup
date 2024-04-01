@@ -17,8 +17,7 @@ if not os.path.exists(LOGS_FOLDER):
 
 logging.basicConfig(
     level=logging.INFO,
-    format=
-    '%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
         handlers.RotatingFileHandler(
@@ -46,14 +45,12 @@ def cli():
     '--binary-path',
     type=str,
     default='',
-    help=
-    'Near binary path, use nearcore/target/debug or nearcore/target/release for local development'
+    help='Near binary path, use nearcore/target/debug or nearcore/target/release for local development'
 )
 @click.option(
     '--home',
     type=str,
-    help=
-    'Home path for storing configs, keys and chain data (Default: ~/.near/testnet)'
+    help='Home path for storing configs, keys and chain data (Default: ~/.near/testnet)'
 )
 @click.option('--account-id', type=str, help='Specify the node account ID')
 @click.option('--boot-nodes',
@@ -83,45 +80,51 @@ def cli():
 @click.option(
     '--override',
     is_flag=True,
-    help=
-    'Override previous node data if exists. Only applicable to localnet. Will be ignored if --interactive is used.'
+    help='Override previous node data if exists. Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--num-nodes',
     type=int,
-    help=
-    'The number of nodes to create. Only applicable to localnet. Will be ignored if --interactive is used.'
+    help='The number of nodes to create. Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--num-shards',
     type=int,
-    help=
-    'The number of shards to create. Only applicable to localnet. Will be ignored if --interactive is used.'
+    help='The number of shards to create. Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--fix-accounts',
     is_flag=True,
-    help=
-    'Setup fixed accounts for first (N-1) shards (shard0, shard1, ...). Only applicable to localnet. Will be ignored if --interactive is used.'
+    help='Setup fixed accounts for first (N-1) shards (shard0, shard1, ...). Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--archival-nodes',
     is_flag=True,
-    help=
-    'Setup the nodes to be archival (keep full history). Only applicable to localnet. Will be ignored if --interactive is used.'
+    help='Setup the nodes to be archival (keep full history). Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--tracked-shards',
     type=str,
-    help=
-    'Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.'
+    help='Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.'
     'Only applicable to localnet. Will be ignored if --interactive is used.')
 @click.option('--no-watcher',
               is_flag=True,
               help='Disable nearup watcher, mostly used for tests.')
+@click.option(
+    '--config-override', 'config_override_path',
+    type=str,
+    help='Path to the config.json file that partially override the auto-generated config'
+)
+@click.option(
+    '--log-level',
+    type=str,
+    default='INFO',
+    help='Sets the Rust logging level.'
+)
 def run(network, binary_path, home, account_id, boot_nodes, interactive,
         verbose, neard_log, override, num_nodes, num_shards, fix_accounts,
-        archival_nodes, tracked_shards, no_watcher):
+        archival_nodes, tracked_shards, no_watcher,
+        config_override_path, log_level):
     if home:
         home = os.path.abspath(home)
     else:
@@ -134,7 +137,8 @@ def run(network, binary_path, home, account_id, boot_nodes, interactive,
 
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
-              archival_nodes, tracked_shards, verbose, interactive)
+              archival_nodes, tracked_shards, verbose, interactive,
+              config_override_path, log_level)
     else:
         setup_and_run(binary_path,
                       home,
@@ -161,8 +165,7 @@ def stop(keep_watcher):
 @click.option(
     '--home',
     type=str,
-    help=
-    'Home path for storing configs, keys and chain data (Default: ~/.near/testnet)'
+    help='Home path for storing configs, keys and chain data (Default: ~/.near/testnet)'
 )
 @click.option('--restart-watcher',
               is_flag=True,
