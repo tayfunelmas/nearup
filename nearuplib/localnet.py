@@ -25,6 +25,7 @@ def run(binary_path,
         verbose=True,
         interactive=False,
         config_override_path=None,
+        genesis_override_path=None,
         log_level=None):
     home = pathlib.Path(home)
 
@@ -117,6 +118,14 @@ def run(binary_path,
         config['network']['addr'] = f'0.0.0.0:{_LOCALNET_NETWORK_PORT + node_id}'
         write_json_for_node('config.json', node_id, config)
 
+        # Update the default genesis config with overrides and write it back.
+        genesis = read_json_for_node('genesis.json', node_id)
+        if genesis_override_path:
+            genesis_override = read_json_from_file(genesis_override_path)
+            mergedeep.merge(genesis, genesis_override,
+                            strategy=mergedeep.Strategy.TYPESAFE_REPLACE)
+        write_json_for_node('genesis.json', node_id, genesis)
+
         # Write log config.
         log_config = {
             'opentelemetry_level': None,
@@ -153,7 +162,7 @@ def run(binary_path,
 
 def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
           archival_nodes, tracked_shards, verbose, interactive,
-          config_override_path, log_level):
+          config_override_path, log_level, genesis_override_path):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -168,4 +177,4 @@ def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
 
     run(binary_path, home, num_nodes, num_shards, override, fix_accounts,
         archival_nodes, tracked_shards, verbose, interactive,
-        config_override_path, log_level)
+        config_override_path, log_level, genesis_override_path)

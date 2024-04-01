@@ -116,6 +116,11 @@ def cli():
     help='Path to the config.json file that partially override the auto-generated config'
 )
 @click.option(
+    '--genesis-override', 'genesis_override_path',
+    type=str,
+    help='Path to the genesis.json file that partially override the auto-generated config'
+)
+@click.option(
     '--log-level',
     type=str,
     default='INFO',
@@ -124,7 +129,7 @@ def cli():
 def run(network, binary_path, home, account_id, boot_nodes, interactive,
         verbose, neard_log, override, num_nodes, num_shards, fix_accounts,
         archival_nodes, tracked_shards, no_watcher,
-        config_override_path, log_level):
+        config_override_path, genesis_override_path, log_level):
     if home:
         home = os.path.abspath(home)
     else:
@@ -138,7 +143,7 @@ def run(network, binary_path, home, account_id, boot_nodes, interactive,
     if network == 'localnet':
         entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
               archival_nodes, tracked_shards, verbose, interactive,
-              config_override_path, log_level)
+              config_override_path, genesis_override_path, log_level)
     else:
         setup_and_run(binary_path,
                       home,
