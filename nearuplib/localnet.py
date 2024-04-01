@@ -108,13 +108,13 @@ def run(binary_path,
     for node_id in range(0, num_nodes):
         # Update the default config with overrides and write it back.
         config = read_json_for_node('config.json', node_id)
-        config['rpc']['addr'] = f'0.0.0.0:{_LOCALNET_RPC_PORT + node_id}'
-        config['network']['addr'] = f'0.0.0.0:{
-            _LOCALNET_NETWORK_PORT + node_id}'
         if config_override_path:
             config_override = read_json_from_file(config_override_path)
             mergedeep.merge(config, config_override,
                             strategy=mergedeep.Strategy.TYPESAFE_REPLACE)
+        # Override the ports based on the node id.
+        config['rpc']['addr'] = f'0.0.0.0:{_LOCALNET_RPC_PORT + node_id}'
+        config['network']['addr'] = f'0.0.0.0:{_LOCALNET_NETWORK_PORT + node_id}'
         write_json_for_node('config.json', node_id, config)
 
         # Write log config.
