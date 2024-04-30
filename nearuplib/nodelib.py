@@ -332,6 +332,8 @@ def run_binary(path,
         env['RUST_LOG'] = 'debug,actix_web=info'
     elif neard_log:
         env['RUST_LOG'] = neard_log
+    
+    env['OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'] = "http://127.0.0.1:4317";
 
     command.append(action)
 
