@@ -26,7 +26,8 @@ def run(binary_path,
         interactive=False,
         config_override_path=None,
         genesis_override_path=None,
-        log_level=None):
+        log_level=None,
+        opentelemetry=None):
     home = pathlib.Path(home)
 
     def read_json_from_file(path):
@@ -128,7 +129,7 @@ def run(binary_path,
 
         # Write log config.
         log_config = {
-            'opentelemetry_level': None,
+            'opentelemetry': str(opentelemetry).lower() if opentelemetry is not None else None,
             'rust_log': str(log_level).upper() if log_level is not None else None
         }
         write_json_for_node('log_config.json', node_id, log_config)
@@ -162,7 +163,7 @@ def run(binary_path,
 
 def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
           archival_nodes, tracked_shards, verbose, interactive,
-          config_override_path, log_level, genesis_override_path):
+          config_override_path, genesis_override_path, log_level, opentelemetry):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -177,4 +178,4 @@ def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
 
     run(binary_path, home, num_nodes, num_shards, override, fix_accounts,
         archival_nodes, tracked_shards, verbose, interactive,
-        config_override_path, log_level, genesis_override_path)
+        config_override_path, genesis_override_path, log_level, opentelemetry)
