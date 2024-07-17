@@ -151,7 +151,7 @@ def cli():
               help='Sets the Rust logging level.')
 @click.option('--opentelemetry',
               type=str,
-              default='INFO',
+              default=None,
               help='Sets the OpenTelemetry level.')
 def run(network, binary_path, home, account_id, boot_nodes, interactive,
         verbose, neard_log, override, num_validators, num_non_validators,

@@ -321,7 +321,8 @@ def run_binary(path,
                fixed_shards=False,
                archival_nodes=None,
                rpc_nodes=None,
-               tracked_shards=False):
+               tracked_shards=False,
+               opentelemetry=None):
     command = [path, '--home', str(home)]
 
     env = os.environ.copy()
@@ -334,7 +335,8 @@ def run_binary(path,
     elif neard_log:
         env['RUST_LOG'] = neard_log
 
-    env['OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'] = "http://127.0.0.1:4317"
+    if opentelemetry:
+        env['OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'] = "http://127.0.0.1:4317"
 
     command.append(action)
 

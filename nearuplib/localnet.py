@@ -111,17 +111,20 @@ def run(binary_path,
             interactive=interactive,
             default="all")
 
-        run_binary(binary_path,
-                   home,
-                   'localnet',
-                   shards=num_shards,
-                   validators=num_validators,
-                   non_validators=num_non_validators,
-                   fixed_shards=fixed_shards,
-                   archival_nodes=archival_nodes,
-                   rpc_nodes=rpc_nodes,
-                   tracked_shards=tracked_shards,
-                   print_command=interactive).wait()
+        run_binary(
+            binary_path,
+            home,
+            'localnet',
+            shards=num_shards,
+            validators=num_validators,
+            non_validators=num_non_validators,
+            fixed_shards=fixed_shards,
+            archival_nodes=archival_nodes,
+            rpc_nodes=rpc_nodes,
+            tracked_shards=tracked_shards,
+            opentelemetry=opentelemetry,
+            print_command=interactive,
+        ).wait()
 
     num_nodes = num_validators + num_non_validators
 
