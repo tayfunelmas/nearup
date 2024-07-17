@@ -16,11 +16,13 @@ _LOCALNET_NETWORK_PORT = 24567
 
 def run(binary_path,
         home,
-        num_nodes,
+        num_validators,
+        num_non_validators,
         num_shards,
         override,
         fix_accounts,
         archival_nodes,
+        rpc_nodes,
         tracked_shards,
         verbose=True,
         interactive=False,
@@ -64,10 +66,17 @@ def run(binary_path,
         print()
 
     if not home.exists():
-        num_nodes = util.prompt_flag(
+        num_validators = util.prompt_flag(
             'How many validator nodes would you like to initialize this localnet with?',
-            num_nodes,
+            num_validators,
             default=4,
+            interactive=interactive,
+            type=int,
+        )
+        num_non_validators = util.prompt_flag(
+            'How many non-validator nodes would you like to initialize this localnet with?',
+            num_non_validators,
+            default=0,
             interactive=interactive,
             type=int,
         )
@@ -86,10 +95,16 @@ def run(binary_path,
                 fix_accounts,
                 interactive=interactive,
             )
-        archival_nodes = util.prompt_bool_flag(
-            "Should these nodes be archival nodes (keep full history)?",
+        archival_nodes = util.prompt_flag(
+            "What nodes should be archival nodes (keep full history)?",
             archival_nodes,
-            interactive=interactive)
+            interactive=interactive,
+            default="")
+        rpc_nodes = util.prompt_flag(
+            "What nodes should be archival nodes (keep full history)?",
+            rpc_nodes,
+            interactive=interactive,
+            default="")
         tracked_shards = util.prompt_flag(
             "What shards should be tracked? Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.",
             tracked_shards,
@@ -100,11 +115,15 @@ def run(binary_path,
                    home,
                    'localnet',
                    shards=num_shards,
-                   validators=num_nodes,
+                   validators=num_validators,
+                   non_validators=num_non_validators,
                    fixed_shards=fixed_shards,
                    archival_nodes=archival_nodes,
+                   rpc_nodes=rpc_nodes,
                    tracked_shards=tracked_shards,
                    print_command=interactive).wait()
+
+    num_nodes = num_validators + num_non_validators
 
     # Edit configuration files for specific nodes.
     for node_id in range(0, num_nodes):
@@ -112,25 +131,31 @@ def run(binary_path,
         config = read_json_for_node('config.json', node_id)
         if config_override_path:
             config_override = read_json_from_file(config_override_path)
-            mergedeep.merge(config, config_override,
+            mergedeep.merge(config,
+                            config_override,
                             strategy=mergedeep.Strategy.TYPESAFE_REPLACE)
         # Override the ports based on the node id.
         config['rpc']['addr'] = f'0.0.0.0:{_LOCALNET_RPC_PORT + node_id}'
-        config['network']['addr'] = f'0.0.0.0:{_LOCALNET_NETWORK_PORT + node_id}'
+        config['network'][
+            'addr'] = f'0.0.0.0:{_LOCALNET_NETWORK_PORT + node_id}'
         write_json_for_node('config.json', node_id, config)
 
         # Update the default genesis config with overrides and write it back.
         genesis = read_json_for_node('genesis.json', node_id)
         if genesis_override_path:
             genesis_override = read_json_from_file(genesis_override_path)
-            mergedeep.merge(genesis, genesis_override,
+            mergedeep.merge(genesis,
+                            genesis_override,
                             strategy=mergedeep.Strategy.TYPESAFE_REPLACE)
         write_json_for_node('genesis.json', node_id, genesis)
 
         # Write log config.
         log_config = {
-            'opentelemetry': str(opentelemetry).lower() if opentelemetry is not None else None,
-            'rust_log': str(log_level).upper() if log_level is not None else None
+            'opentelemetry':
+                str(opentelemetry).lower()
+                if opentelemetry is not None else None,
+            'rust_log':
+                str(log_level).upper() if log_level is not None else None
         }
         write_json_for_node('log_config.json', node_id, log_config)
 
@@ -161,9 +186,10 @@ def run(binary_path,
     logging.info('Check localnet status at http://127.0.0.1:3030/status')
 
 
-def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
-          archival_nodes, tracked_shards, verbose, interactive,
-          config_override_path, genesis_override_path, log_level, opentelemetry):
+def entry(binary_path, home, num_validators, num_non_validators, num_shards,
+          override, fix_accounts, archival_nodes, rpc_nodes, tracked_shards,
+          verbose, interactive, config_override_path, genesis_override_path,
+          log_level, opentelemetry):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -176,6 +202,7 @@ def entry(binary_path, home, num_nodes, num_shards, override, fix_accounts,
     if is_neard_running():
         sys.exit(1)
 
-    run(binary_path, home, num_nodes, num_shards, override, fix_accounts,
-        archival_nodes, tracked_shards, verbose, interactive,
-        config_override_path, genesis_override_path, log_level, opentelemetry)
+    run(binary_path, home, num_validators, num_non_validators, num_shards,
+        override, fix_accounts, archival_nodes, rpc_nodes, tracked_shards,
+        verbose, interactive, config_override_path, genesis_override_path,
+        log_level, opentelemetry)

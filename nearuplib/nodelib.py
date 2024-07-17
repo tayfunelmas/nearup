@@ -319,7 +319,8 @@ def run_binary(path,
                output=None,
                print_command=False,
                fixed_shards=False,
-               archival_nodes=False,
+               archival_nodes=None,
+               rpc_nodes=None,
                tracked_shards=False):
     command = [path, '--home', str(home)]
 
@@ -332,8 +333,8 @@ def run_binary(path,
         env['RUST_LOG'] = 'debug,actix_web=info'
     elif neard_log:
         env['RUST_LOG'] = neard_log
-    
-    env['OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'] = "http://127.0.0.1:4317";
+
+    env['OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'] = "http://127.0.0.1:4317"
 
     command.append(action)
 
@@ -348,7 +349,9 @@ def run_binary(path,
     if fixed_shards:
         command.append('--fixed-shards')
     if archival_nodes:
-        command.append('--archival-nodes')
+        command.extend(['--archival-nodes', archival_nodes])
+    if rpc_nodes:
+        command.extend(['--rpc-nodes', rpc_nodes])
     if tracked_shards:
         command.extend(['--tracked-shards', tracked_shards])
 
