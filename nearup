@@ -113,12 +113,14 @@ def cli():
 @click.option(
     '--archival-nodes',
     type=str,
+    default="none",
     help=
     'Setup the nodes to be archival (keep full history). Only applicable to localnet. Will be ignored if --interactive is used.'
 )
 @click.option(
     '--rpc-nodes',
     type=str,
+    default="none",
     help=
     'Setup the nodes to be RPC (keep full history). Only applicable to localnet. Will be ignored if --interactive is used.'
 )

@@ -99,12 +99,12 @@ def run(binary_path,
             "What nodes should be archival nodes (keep full history)?",
             archival_nodes,
             interactive=interactive,
-            default="")
+            default="none")
         rpc_nodes = util.prompt_flag(
-            "What nodes should be archival nodes (keep full history)?",
+            "What nodes should be rpc nodes (keep full history)?",
             rpc_nodes,
             interactive=interactive,
-            default="")
+            default="none")
         tracked_shards = util.prompt_flag(
             "What shards should be tracked? Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.",
             tracked_shards,
