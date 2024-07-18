@@ -21,8 +21,8 @@ def run(binary_path,
         num_shards,
         override,
         fix_accounts,
-        archival_nodes,
-        rpc_nodes,
+        num_archival_nodes,
+        num_rpc_nodes,
         tracked_shards,
         verbose=True,
         interactive=False,
@@ -95,16 +95,20 @@ def run(binary_path,
                 fix_accounts,
                 interactive=interactive,
             )
-        archival_nodes = util.prompt_flag(
-            "What nodes should be archival nodes (keep full history)?",
-            archival_nodes,
+        num_archival_nodes = util.prompt_flag(
+            "What nodes should be archival nodes?",
+            num_archival_nodes,
+            default=0,
             interactive=interactive,
-            default="none")
-        rpc_nodes = util.prompt_flag(
-            "What nodes should be rpc nodes (keep full history)?",
-            rpc_nodes,
+            type=int,
+        )
+        num_rpc_nodes = util.prompt_flag(
+            "What nodes should be rpc nodes?",
+            num_rpc_nodes,
+            default=0,
             interactive=interactive,
-            default="none")
+            type=int,
+        )
         tracked_shards = util.prompt_flag(
             "What shards should be tracked? Comma separated list of shards to track, the word \'all\' to track all shards or the word \'none\' to track no shards.",
             tracked_shards,
@@ -119,14 +123,14 @@ def run(binary_path,
             validators=num_validators,
             non_validators=num_non_validators,
             fixed_shards=fixed_shards,
-            archival_nodes=archival_nodes,
-            rpc_nodes=rpc_nodes,
+            num_archival_nodes=num_archival_nodes,
+            num_rpc_nodes=num_rpc_nodes,
             tracked_shards=tracked_shards,
             opentelemetry=opentelemetry,
             print_command=interactive,
         ).wait()
 
-    num_nodes = num_validators + num_non_validators
+    num_nodes = num_validators + num_non_validators + num_archival_nodes + num_rpc_nodes
 
     # Edit configuration files for specific nodes.
     for node_id in range(0, num_nodes):
@@ -190,9 +194,9 @@ def run(binary_path,
 
 
 def entry(binary_path, home, num_validators, num_non_validators, num_shards,
-          override, fix_accounts, archival_nodes, rpc_nodes, tracked_shards,
-          verbose, interactive, config_override_path, genesis_override_path,
-          log_level, opentelemetry):
+          override, fix_accounts, num_archival_nodes, num_rpc_nodes,
+          tracked_shards, verbose, interactive, config_override_path,
+          genesis_override_path, log_level, opentelemetry):
     if binary_path:
         binary_path = os.path.join(binary_path, 'neard')
     else:
@@ -206,6 +210,6 @@ def entry(binary_path, home, num_validators, num_non_validators, num_shards,
         sys.exit(1)
 
     run(binary_path, home, num_validators, num_non_validators, num_shards,
-        override, fix_accounts, archival_nodes, rpc_nodes, tracked_shards,
-        verbose, interactive, config_override_path, genesis_override_path,
-        log_level, opentelemetry)
+        override, fix_accounts, num_archival_nodes, num_rpc_nodes,
+        tracked_shards, verbose, interactive, config_override_path,
+        genesis_override_path, log_level, opentelemetry)

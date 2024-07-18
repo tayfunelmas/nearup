@@ -319,8 +319,8 @@ def run_binary(path,
                output=None,
                print_command=False,
                fixed_shards=False,
-               archival_nodes=None,
-               rpc_nodes=None,
+               num_archival_nodes=None,
+               num_rpc_nodes=None,
                tracked_shards=False,
                opentelemetry=None):
     command = [path, '--home', str(home)]
@@ -350,10 +350,10 @@ def run_binary(path,
         command.extend(['--boot-nodes', boot_nodes])
     if fixed_shards:
         command.append('--fixed-shards')
-    if archival_nodes:
-        command.extend(['--archival-nodes', archival_nodes])
-    if rpc_nodes:
-        command.extend(['--rpc-nodes', rpc_nodes])
+    if num_archival_nodes:
+        command.extend(['--non-validators-archival', str(num_archival_nodes)])
+    if num_rpc_nodes:
+        command.extend(['--non-validators-rpc', str(num_rpc_nodes)])
     if tracked_shards:
         command.extend(['--tracked-shards', tracked_shards])
 
